@@ -19,7 +19,7 @@ func main() {
 			data, _ := ioutil.ReadAll(r)
 			log.Println("control file", string(data))
 		}
-		if strings.HasPrefix(header.Name, "data") {
+		if strings.HasPrefix(header.Name, "data")  && !header.FileInfo().IsDir() {
 			log.Println("data file", header.Name, header.Size)
 		}
 	}
