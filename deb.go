@@ -1,8 +1,9 @@
 package deb
 
-
 import (
 	"archive/tar"
+	"compress/bzip2"
+	"compress/gzip"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,14 +11,15 @@ import (
 	"strings"
 
 	"github.com/blakesmith/ar"
-	"github.com/mholt/archiver"
+	"github.com/ulikunitz/xz"
+	"github.com/ulikunitz/xz/lzma"
 )
 
 // Reader Deb包读取，类似tar的API
 type Reader struct {
 	arReader  *ar.Reader
 	tarDir    string
-	tarReader archiver.Reader
+	tarReader *tar.Reader
 	body      io.Reader
 }
 
@@ -29,13 +31,9 @@ func NewReader(r io.Reader) *Reader {
 // Next 类似 tar.Reader.Next
 func (deb *Reader) Next() (*tar.Header, error) {
 	if deb.tarReader != nil {
-		file, err := deb.tarReader.Read()
+		header, err := deb.tarReader.Next()
 		if err == nil {
-			deb.body = file
-			header, ok := file.Header.(*tar.Header)
-			if !ok {
-				return nil, fmt.Errorf("unknown header")
-			}
+			deb.body = deb.tarReader
 			header.Name = filepath.Join(deb.tarDir, header.Name)
 			return header, nil
 		}
@@ -75,24 +73,26 @@ func (deb *Reader) Read(b []byte) (int, error) {
 }
 
 // 根据文件后缀名，解压文件
-func decompression(filename string, r io.Reader) (archiver.Reader, error) {
-	type Archiver interface {
-		archiver.Reader
-		archiver.Archiver
+func decompression(filename string, r io.Reader) (*tar.Reader, error) {
+	var tarReader io.Reader
+	var err error
+	// See https://zh.wikipedia.org/wiki/Deb
+	switch filepath.Ext(filename) {
+	case ".gz":
+		tarReader, err = gzip.NewReader(r)
+	case ".xz":
+		tarReader, err = xz.NewReader(r)
+	case ".lzma":
+		tarReader, err = lzma.NewReader(r)
+	case ".bz2":
+		tarReader = bzip2.NewReader(r)
+	case ".tar":
+		tarReader = r
+	default:
+		return nil, fmt.Errorf("unknown extension")
 	}
-	archivers := []Archiver{
-		archiver.NewTar(), archiver.NewTarGz(), archiver.NewTarXz(), archiver.NewTarBz2(),
+	if err != nil {
+		return nil, fmt.Errorf("unzip reader %w", err)
 	}
-	for i := range archivers {
-		err := archivers[i].CheckExt(filename)
-		if err != nil {
-			continue
-		}
-		err = archivers[i].Open(r, 0)
-		if err != nil {
-			return nil, fmt.Errorf("open archive %w", err)
-		}
-		return archivers[i], nil
-	}
-	return nil, fmt.Errorf("unknown extension")
+	return tar.NewReader(tarReader), nil
 }
