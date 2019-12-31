@@ -49,7 +49,8 @@ func (deb *Reader) Next() (*tar.Header, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ar read %w", err)
 	}
-	if header.Name == "debian-binary" {
+	switch strings.SplitN(header.Name, ".", 2)[0] {
+	case "debian-binary":
 		b, err := ioutil.ReadAll(deb.arReader)
 		if err != nil {
 			return nil, fmt.Errorf("read debian binary %w", err)
@@ -58,12 +59,15 @@ func (deb *Reader) Next() (*tar.Header, error) {
 			return nil, fmt.Errorf("unknown version %v", string(b))
 		}
 		return deb.Next()
+	case "control":
+		deb.tarDir = "DEBIAN"
+	case "data":
+		deb.tarDir = ""
 	}
 	tr, err := decompression(header.Name, deb.arReader)
 	if err != nil {
 		return nil, fmt.Errorf("decompression control %w", err)
 	}
-	deb.tarDir = strings.SplitN(header.Name, ".", 2)[0]
 	deb.tarReader = tr
 	return deb.Next()
 }
