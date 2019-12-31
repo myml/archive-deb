@@ -93,7 +93,7 @@ func testWriter(filename string) error {
 }
 
 func testFiles() []string {
-	list, err := filepath.Glob("/home/myml/Src/dpkg-archiver/testdata/*")
+	list, err := filepath.Glob("testdata/*")
 	if err != nil {
 		panic(err)
 	}
