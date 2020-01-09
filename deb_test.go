@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func ATestReader(t *testing.T) {
+func TestReader(t *testing.T) {
 	for _, filename := range testFiles() {
 		testReader(filename)
 	}

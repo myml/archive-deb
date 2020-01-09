@@ -50,7 +50,7 @@ func (deb *Reader) Next() (*tar.Header, error) {
 		return nil, fmt.Errorf("ar read %w", err)
 	}
 	header.Name = filepath.Base(header.Name)
-	switch strings.TrimRight(header.Name, filepath.Ext(header.Name)) {
+	switch strings.SplitN(header.Name, ".", 2)[0] {
 	case "debian-binary":
 		b, err := ioutil.ReadAll(deb.arReader)
 		if err != nil {
