@@ -1,6 +1,6 @@
 # 这是什么
 
-这是一个简单的 go 模块，提供类似 archive/tar 的 API，用于读取 Debian deb 包的内部文件
+这是一个简单的 go 模块，提供类似 archive/tar 的 API，用于读写 Debian deb
 
 # 例子
 
