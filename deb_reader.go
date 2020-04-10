@@ -64,6 +64,8 @@ func (deb *Reader) Next() (*tar.Header, error) {
 		deb.tarDir = "DEBIAN"
 	case "data":
 		deb.tarDir = ""
+	default:
+		return deb.Next()
 	}
 	tr, err := decompression(header.Name, deb.arReader)
 	if err != nil {
