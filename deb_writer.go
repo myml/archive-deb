@@ -3,7 +3,6 @@ package deb
 import (
 	"archive/tar"
 	"compress/gzip"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blakesmith/ar"
+	"github.com/myml/ar"
 	"github.com/ulikunitz/xz"
 )
 
@@ -119,7 +118,7 @@ func (w *Writer) Close() error {
 			return fmt.Errorf("write header %w", err)
 		}
 		_, err = io.Copy(w.arWriter, f)
-		if err != nil && !errors.Is(err, io.ErrShortWrite) {
+		if err != nil {
 			return fmt.Errorf("write data %w", err)
 		}
 	}

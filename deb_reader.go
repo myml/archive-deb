@@ -2,17 +2,20 @@ package deb
 
 import (
 	"archive/tar"
-	"compress/bzip2"
-	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
 
-	"github.com/blakesmith/ar"
-	"github.com/ulikunitz/xz"
-	"github.com/ulikunitz/xz/lzma"
+	"github.com/myml/ar"
+)
+
+// ErrNoSupportVersion 不支持的debian包版本，目前只支持2.0
+var (
+	ErrNoSupportVersion = errors.New("Not support version")
+	ErrUnknownExtension = errors.New("Unknown extension name")
 )
 
 // Reader Deb包读取，类似tar的API
@@ -77,29 +80,4 @@ func (deb *Reader) Next() (*tar.Header, error) {
 
 func (deb *Reader) Read(b []byte) (int, error) {
 	return deb.body.Read(b)
-}
-
-// 根据文件后缀名，解压文件
-func decompression(filename string, r io.Reader) (*tar.Reader, error) {
-	var tarReader io.Reader
-	var err error
-	// See https://zh.wikipedia.org/wiki/Deb
-	switch filepath.Ext(filename) {
-	case ".gz":
-		tarReader, err = gzip.NewReader(r)
-	case ".xz":
-		tarReader, err = xz.NewReader(r)
-	case ".lzma":
-		tarReader, err = lzma.NewReader(r)
-	case ".bz2":
-		tarReader = bzip2.NewReader(r)
-	case ".tar":
-		tarReader = r
-	default:
-		return nil, fmt.Errorf("unknown extension")
-	}
-	if err != nil {
-		return nil, fmt.Errorf("unzip reader %w", err)
-	}
-	return tar.NewReader(tarReader), nil
 }
