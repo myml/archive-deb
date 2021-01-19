@@ -13,18 +13,18 @@ import (
 func TestWriterAll(t *testing.T) {
 	for _, filename := range testFiles() {
 		t.Log(filename)
-		testReader(filename)
+		testWriter(t, filename)
 	}
 }
 
 func TestWriter(t *testing.T) {
-	err := testWriter(filepath.Join(testdata, testfile))
+	err := testWriter(t, filepath.Join(testdata, testfile))
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
-func testWriter(filename string) error {
+func testWriter(t *testing.T, filename string) error {
 	rf, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -64,7 +64,7 @@ func testWriter(filename string) error {
 	if err != nil {
 		return fmt.Errorf("deb close: %w", err)
 	}
-	err = wf.Sync()
+	err = wf.Close()
 	if err != nil {
 		return fmt.Errorf("file sync: %w", err)
 	}
@@ -72,7 +72,7 @@ func testWriter(filename string) error {
 	if err != nil {
 		return fmt.Errorf("ar command verify: %w", err)
 	}
-	err = exec.Command("dpkg-deb", "-info", wf.Name()).Run()
+	err = exec.Command("dpkg-deb", "--info", wf.Name()).Run()
 	if err != nil {
 		return fmt.Errorf("dpkg command verify: %w", err)
 	}

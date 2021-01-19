@@ -6,7 +6,7 @@
 
 ```go
 func main() {
-	debFile := "./voicenote_1.11.0_amd64.deb"
+	debFile := "./test.deb"
 	f, _ := os.Open(debFile)
 	defer f.Close()
 	r := deb.NewReader(f)
@@ -15,7 +15,7 @@ func main() {
 		if err == io.EOF {
 			break
 		}
-		if strings.HasPrefix(header.Name, "control/control") {
+		if strings.HasPrefix(header.Name, "DEBIAN/control") {
 			data, _ := ioutil.ReadAll(r)
 			log.Println("control file", string(data))
 		}

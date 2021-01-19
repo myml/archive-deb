@@ -10,18 +10,18 @@ import (
 
 func TestReaderAll(t *testing.T) {
 	for _, filename := range testFiles() {
-		testReader(filename)
+		testReader(t, filename)
 	}
 }
 
 func TestReader(t *testing.T) {
-	err := testReader(filepath.Join(testdata, testfile))
+	err := testReader(t, filepath.Join(testdata, testfile))
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
-func testReader(filename string) error {
+func testReader(t *testing.T, filename string) error {
 	f, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -36,6 +36,7 @@ func testReader(filename string) error {
 			}
 			return err
 		}
+		t.Log(head)
 		if head.Size == 0 {
 			continue
 		}
